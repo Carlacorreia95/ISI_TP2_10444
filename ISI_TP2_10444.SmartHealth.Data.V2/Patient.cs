@@ -21,13 +21,8 @@ namespace ISI_TP2_10444_SmartHealth_Data
 
         // --- Navigation Properties ---
 
-        public virtual ICollection<Alert> Alerts { get; set; } // Navigation Property: Allows accessing related Alerts directly
+        
         //public virtual ICollection<Wearable> Wearables { get; set; } // Navigation Property: Allows accessing related Wearables directly
 
-        public Patient()  //Inicializa as listas vazias para evitar erros de "NullReference" ao adicionar algo antes de carregar da BD.
-        {
-            Alerts = new List<Alert>();
-            //Wearables = new List<Wearable>();
-        }
     }
 }

@@ -21,10 +21,7 @@ namespace ISI_TP2_10444_SmartHealth_Data
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.Entity<Alert>()
-                .HasOne(a => a.Patient)
-                .WithMany(p => p.Alerts)
-                .HasForeignKey(a => a.PatientId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .HasOne(a => a.PatientId)
         }
     }
 }
