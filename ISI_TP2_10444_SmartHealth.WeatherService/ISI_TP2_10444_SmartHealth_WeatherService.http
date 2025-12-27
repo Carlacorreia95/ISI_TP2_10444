@@ -1,0 +1,6 @@
+@ISI_TP2_10444_SmartHealth.WeatherService_HostAddress = http://localhost:5281
+
+GET {{ISI_TP2_10444_SmartHealth.WeatherService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
