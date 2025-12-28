@@ -1,6 +1,0 @@
-@ISI_TP2_10444_SmartHealth.RulesEngine_HostAddress = http://localhost:5137
-
-GET {{ISI_TP2_10444_SmartHealth.RulesEngine_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

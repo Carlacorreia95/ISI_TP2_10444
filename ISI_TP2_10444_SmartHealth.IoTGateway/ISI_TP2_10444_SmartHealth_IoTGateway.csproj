@@ -7,7 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.22" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ISI_TP2_10444.SmartHealth.Data.V2\ISI_TP2_10444_SmartHealth_Data.csproj" />
+    <ProjectReference Include="..\ISI_TP2_10444_SmartHealth_SoapRules\ISI_TP2_10444_SmartHealth_SoapRules.csproj" />
   </ItemGroup>
 
 </Project>
