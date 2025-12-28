@@ -10,6 +10,7 @@ namespace ISI_TP2_10444_SmartHealth_MedicalService.Controllers
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
+        string role;
         private readonly IConfiguration _config;
 
         public AuthController(IConfiguration config)
@@ -20,16 +21,27 @@ namespace ISI_TP2_10444_SmartHealth_MedicalService.Controllers
         [HttpPost("login")]
         public IActionResult Login(string username, string password)
         {
-            if (username != "admin" || password != "1234")
-                return Unauthorized("Invalid credentials");
 
             var jwtSettings = _config.GetSection("Jwt");
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]));
 
+            if (username == "patient" && password == "1234")
+            {
+                role = "Patient";
+            }
+            else if (username == "doctor" && password == "1234")
+            {
+                role = "Doctor";
+            }
+            else
+            {
+                return Unauthorized("Invalid credentials");
+            }
+
             var claims = new[]
             {
                 new Claim(ClaimTypes.Name, username),
-                new Claim(ClaimTypes.Role, "Doctor")
+                new Claim(ClaimTypes.Role, role)
             };
 
             var token = new JwtSecurityToken(

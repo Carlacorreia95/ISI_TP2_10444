@@ -7,7 +7,7 @@ namespace ISI_TP2_10444_SmartHealth_MedicalService_Controllers
 {
     [Route("api/[controller]")] // Define rout as "api/patients"
     [ApiController]
-    [Authorize]
+    [Authorize(Roles = "Doctor")]
     public class PatientsController : ControllerBase
     {
         private readonly SmartHealthContext _context; //Dependency Injection: The system delivers the 'SmartHealthContext'
