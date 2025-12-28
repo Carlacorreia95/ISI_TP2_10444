@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using ISI_TP2_10444_SmartHealth_Data;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -10,12 +11,14 @@ namespace ISI_TP2_10444_SmartHealth_MedicalService.Controllers
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
+        private readonly SmartHealthContext _context;
         string role;
         private readonly IConfiguration _config;
 
-        public AuthController(IConfiguration config)
+        public AuthController(IConfiguration config, SmartHealthContext context)
         {
             _config = config;
+            _context = context;
         }
 
         [HttpPost("login")]
@@ -24,13 +27,21 @@ namespace ISI_TP2_10444_SmartHealth_MedicalService.Controllers
 
             var jwtSettings = _config.GetSection("Jwt");
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]));
+            if (username != "doctor")
+            {
+                var patient = _context.Patients
+                    .FirstOrDefault(p => p.UserName == username);
 
-            if (username == "patient" && password == "1234")
-            {
-                role = "Patient";
+                if (patient == null)
+                    return Unauthorized("Username not found");
+
+                if (patient.Password != password)
+                    return Unauthorized("Invalid password");
+
+                role = patient.UserType ?? "Patient";
+
             }
-            else if (username == "doctor" && password == "1234")
-            {
+            else if(username == "doctor" && password == "1234"){
                 role = "Doctor";
             }
             else

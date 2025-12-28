@@ -5,8 +5,11 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
+
+
 
 // Database
 builder.Services.AddDbContext<SmartHealthContext>(options =>
@@ -79,6 +82,12 @@ builder.Services.AddAuthentication(options =>
 });
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<SmartHealthContext>();
+    db.Database.Migrate();
+}
 
 if (app.Environment.IsDevelopment())
 {

@@ -17,9 +17,15 @@ namespace ISI_TP2_10444_SmartHealth_Data
         public string ChronicCondition { get; set; } // Ex: "Diabetes"
         public int? DoctorId { get; set; } // Chave estrangeira
 
+        public string UserType { get; set; } // Ex: "Patient"
+
+        public string UserName { get; set; } // Ex: "johndoe"
+
+        public string Password { get; set; } // Ex: "hashed_password"   
+
         // --- Navigation Properties ---
 
-        
+
         //public virtual ICollection<Wearable> Wearables { get; set; } // Navigation Property: Allows accessing related Wearables directly
 
     }

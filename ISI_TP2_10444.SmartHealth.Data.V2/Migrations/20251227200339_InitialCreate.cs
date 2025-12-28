@@ -19,7 +19,11 @@ namespace ISI_TP2_10444_SmartHealth_Data.Migrations
                     FullName = table.Column<string>(type: "TEXT", maxLength: 150, nullable: false),
                     DateOfBirth = table.Column<DateTime>(type: "TEXT", nullable: false),
                     ChronicCondition = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
-                    DoctorId = table.Column<int>(type: "INTEGER", nullable: true)
+                    DoctorId = table.Column<int>(type: "INTEGER", nullable: true),
+                    UserName = table.Column<string>(type: "TEXT"),
+                    UserType = table.Column<string>(type: "TEXT"),
+                    Password = table.Column<string>(type: "TEXT"),
+
                 },
                 constraints: table =>
                 {

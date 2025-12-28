@@ -69,6 +69,15 @@ namespace ISI_TP2_10444_SmartHealth_Data.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("userName")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("userType")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("password")
+                        .HasColumnType("TEXT");
+
                     b.HasKey("PatientId");
 
                     b.ToTable("Patients");
