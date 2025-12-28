@@ -1,106 +1,99 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ISI_TP2_10444_SmartHealth_Data;
 using Microsoft.EntityFrameworkCore;
+using ISI_TP2_10444_SmartHealth_Data;
 using ISI_TP2_10444_SmartHealth_Data.Dtos;
-using ISI_TP2_10444_SmartHealth_SoapRules.Services;
 using ISI_TP2_10444_SmartHealth_Data.Services;
 
-namespace SmartHealth.Api.Controllers;
-
-[ApiController]
-[Route("api/signals")]
-[Authorize]
-public class SignalController : ControllerBase
+namespace ISI_TP2_10444_SmartHealth_IoTGateway.Controllers
 {
-    private readonly SmartHealthContext _db;
-    private readonly ISoapRulesClient _soap;
-
-    public SignalController(SmartHealthContext db, ISoapRulesClient soap)
+    [ApiController]
+    [Route("api/signals")]
+    [AllowAnonymous]
+    public class SignalController : ControllerBase
     {
-        _db = db;
-        _soap = soap;
-    }
+        private readonly SmartHealthContext _db;
+        private readonly ISoapRulesClient _soap;
 
-    [HttpPost]
-    public async Task<ActionResult<SignalsResponseDto>> PostSinais([FromBody] SignalsInputDto input)
-    {
-        // 1) validar wearable
-        var wearable = await _db.Wearables.FindAsync(input.WearableId);
-        if (wearable is null)
-            return NotFound("WearableID inválido.");
-
-        // 2) persistir medições (1 linha por medição)
-        var registoOrigemId = Guid.NewGuid();
-
-        foreach (var m in input.Measurement)
+        public SignalController(SmartHealthContext db, ISoapRulesClient soap)
         {
-            _db.VitalSignRecords.Add(new VitalSignRecord
-            {
-                RecordId = Guid.NewGuid(),
-                WearableId = input.WearableId,
-                RegistrationDateTime = input.RegistrationDateTime,
-                SignalType = m.SignalType,
-                Value = m.Value,
-                Unit = m.Unit
-            });
+            _db = db;
+            _soap = soap;
         }
 
-        await _db.SaveChangesAsync();
-
-        // 3) chamar motor de regras (SOAP stub por enquanto)
-        var soapResult = await _soap.ProcessSignsAsync(new SoapRegistrationRequest
+        [HttpPost]
+        public async Task<ActionResult<SignalsResponseDto>> PostSinais([FromBody] SignalsInputDto input)
         {
-            RecordId = registoOrigemId,
-            PacientId = wearable.PatientId,
-            RegistrationDateTime = input.RegistrationDateTime,
-            Measurements = input.Measurement.Select(x => new SoapMeasurement
-            {
-                SignalType = x.SignalType,
-                MeasurementValue = x.Value,
-                Unit = x.Unit
-            }).ToList()
-        });
+            var wearable = await _db.Wearables.FindAsync(input.WearableId);
+            if (wearable is null)
+                return NotFound("WearableID invÃ¡lido.");
 
-        // 4) se gerou alerta, guardar
-        if (soapResult.AlertGenerated && soapResult.RuleViolated is not null)
-        {
-            _db.Alerts.Add(new Alert
+            var registoOrigemId = Guid.NewGuid();
+
+            foreach (var m in input.Measurement)
             {
-                AlertId = Guid.NewGuid(),
-                PatientId = wearable.PatientId,
-                RuleViolated = soapResult.RuleViolated,
-                CreatedAt = DateTime.UtcNow,
-                Status = AlertStatus.New
-            });
+                _db.VitalSignRecords.Add(new VitalSignRecord
+                {
+                    RecordId = Guid.NewGuid(),
+                    WearableId = input.WearableId,
+                    RegistrationDateTime = input.RegistrationDateTime,
+                    SignalType = m.SignalType,
+                    Value = m.Value,
+                    Unit = m.Unit
+                });
+            }
 
             await _db.SaveChangesAsync();
+
+            var soapResult = await _soap.ProcessSignsAsync(new SoapRegistrationRequest
+            {
+                RecordId = registoOrigemId,
+                PacientId = wearable.PatientId,
+                RegistrationDateTime = input.RegistrationDateTime,
+                Measurements = input.Measurement.Select(x => new SoapMeasurement
+                {
+                    SignalType = x.SignalType,
+                    MeasurementValue = x.Value,
+                    Unit = x.Unit
+                }).ToList()
+            });
+
+            if (soapResult.AlertGenerated && soapResult.RuleViolated is not null)
+            {
+                _db.Alerts.Add(new Alert
+                {
+                    AlertId = Guid.NewGuid(),
+                    PatientId = wearable.PatientId,
+                    RuleViolated = soapResult.RuleViolated,
+                    CreatedAt = DateTime.UtcNow,
+                    Status = AlertStatus.New
+                });
+
+                await _db.SaveChangesAsync();
+            }
+
+            return Accepted(new SignalsResponseDto(
+                Success: soapResult.Success,
+                AlertGenerated: soapResult.AlertGenerated,
+                Message: soapResult.Message ?? "OK"
+            ));
         }
 
-        // 5) responder ao wearable
-        return Accepted(new SignalsResponseDto(
-            Success: soapResult.Success,
-            AlertGenerated: soapResult.AlertGenerated,
-            Message: soapResult.Message ?? "OK"
-        ));
-    }
+        [HttpGet("{patientId:guid}")]
+        public async Task<IActionResult> GetHistory(Guid patientId)
+        {
+            var wearableIds = await _db.Wearables
+                .Where(w => w.PatientId == patientId)
+                .Select(w => w.WearableId)
+                .ToListAsync();
 
-    [HttpGet("{patientId:guid}")]
-    public async Task<IActionResult> GetHistory(Guid patientId)
-    {
-        // wearables of patient
-        var wearableIds = await _db.Wearables
-            .Where(w => w.PatientId == patientId)
-            .Select(w => w.WearableId)
-            .ToListAsync();
+            var result = await _db.VitalSignRecords
+                .Where(v => wearableIds.Contains(v.WearableId))
+                .OrderByDescending(v => v.RegistrationDateTime)
+                .Take(200)
+                .ToListAsync();
 
-        // signs of these wearables
-        var result = await _db.VitalSignRecords
-            .Where(v => wearableIds.Contains(v.WearableId))
-            .OrderByDescending(v => v.RegistrationDateTime)
-            .Take(200)
-            .ToListAsync();
-
-        return Ok(result);
+            return Ok(result);
+        }
     }
 }

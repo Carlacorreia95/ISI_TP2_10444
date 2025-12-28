@@ -2,40 +2,46 @@ using ISI_TP2_10444_SmartHealth_Data;
 using ISI_TP2_10444_SmartHealth_Data.Services;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
+// Database connection (SQLite)
 builder.Services.AddDbContext<SmartHealthContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
-    {
-        // This prevents the code from entering an infinite loop. (Paciente -> Alerta -> Paciente...)
-        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-    });
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-builder.Services.AddScoped<ISoapRulesClient, SoapRulesClient>();
+// Controllers + JSON options
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+});
 
-builder.Services.AddDbContext<SmartHealthContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+// Swagger/OpenAPI
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title = "SmartHealth IoT Gateway API",
+        Version = "v1",
+        Description = "API for receiving wearable signals and generating alerts."
+    });
+});
+
+// Mock SOAP rules engine
+builder.Services.AddScoped<ISoapRulesClient, SoapRulesClient>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+// Enable Swagger for UI + JSON static endpoint
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "SmartHealth IoT Gateway API v1");
+    c.RoutePrefix = string.Empty; // Makes Swagger load at root
+});
+
 
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();
