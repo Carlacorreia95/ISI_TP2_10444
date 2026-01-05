@@ -41,7 +41,7 @@ namespace ISI_TP2_10444_SmartHealth_MedicalService_Controllers
         {
             //patient.PatientId = Guid.NewGuid();// New ID to grant it is unic
 
-            _context.Patients.Add(patient);
+            _context.Patients.Add(patient);            
             try
             {
                 await _context.SaveChangesAsync();
@@ -102,6 +102,23 @@ namespace ISI_TP2_10444_SmartHealth_MedicalService_Controllers
         private bool PatientExists(Guid id)
         {
             return _context.Patients.Any(e => e.PatientId == id);
+        }
+
+        //DELETE: api/patients/{id}
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeletePatient(Guid id)
+        {
+            var patient = await _context.Patients.FindAsync(id);
+
+            if (patient == null)
+            {
+                return NotFound();
+            }
+
+            _context.Patients.Remove(patient);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
         }
     }
 }

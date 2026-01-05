@@ -26,7 +26,7 @@ namespace ISI_TP2_10444_SmartHealth_IoTGateway.Controllers
         {
             var wearable = await _db.Wearables.FindAsync(input.WearableId);
             if (wearable is null)
-                return NotFound("WearableID invÃ¡lido.");
+                return NotFound("WearableID invalido.");
 
             var registoOrigemId = Guid.NewGuid();
 

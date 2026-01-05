@@ -13,7 +13,7 @@ public interface IRulesService
 [DataContract]
 public class RulesRequest
 {
-    [DataMember] public Guid RegistId { get; set; }
+    [DataMember] public Guid RecordId { get; set; }
     [DataMember] public Guid PatientId { get; set; }
     [DataMember] public DateTime RecordDateTime { get; set; }
     [DataMember] public List<MeasurementRules> Mesurements { get; set; } = new();
