@@ -7,8 +7,9 @@ using ISI_TP2_10444_SmartHealth_Data.Services;
 
 namespace ISI_TP2_10444_SmartHealth_IoTGateway.Controllers
 {
+
     [ApiController]
-    [Route("api/signals")]
+    [Route("api/[controller]")]
     [AllowAnonymous]
     public class SignalController : ControllerBase
     {
@@ -20,8 +21,8 @@ namespace ISI_TP2_10444_SmartHealth_IoTGateway.Controllers
             _db = db;
             _soap = soap;
         }
-
-        [HttpPost]
+        // POST: api/wearables/signals
+        [HttpPost("{wearableId}/signals")]
         public async Task<ActionResult<SignalsResponseDto>> PostSinais([FromBody] SignalsInputDto input)
         {
             var wearable = await _db.Wearables.FindAsync(input.WearableId);
@@ -96,4 +97,46 @@ namespace ISI_TP2_10444_SmartHealth_IoTGateway.Controllers
             return Ok(result);
         }
     }
+
+        [ApiController]
+        [Route("api/[controller]")]
+        [AllowAnonymous]
+        public class WearableController : ControllerBase
+        {
+            private readonly SmartHealthContext _db;
+            private readonly ISoapRulesClient _soap;
+
+        public WearableController(SmartHealthContext db, ISoapRulesClient soap)
+        {
+            _db = db;
+            _soap = soap;
+        }
+        // GET: api/wearable/{id}
+        [HttpGet("{id}")]
+            public async Task<ActionResult<Wearable>> GetWearable(Guid id)
+            {
+                var wearable = await _db.Wearables.FindAsync(id);
+
+                if (wearable == null)
+                    return NotFound();
+
+                return wearable;
+            }
+
+            // POST: api/wearables
+            [HttpPost()]
+            public async Task<ActionResult<Wearable>> CreateWearables(Wearable wearable)
+            {
+                wearable.WearableId = Guid.NewGuid();
+
+                _db.Wearables.Add(wearable);
+                await _db.SaveChangesAsync();
+
+                return CreatedAtAction(
+                    nameof(GetWearable),
+                    new { id = wearable.WearableId },
+                    wearable
+                );
+            }
+        }
 }
