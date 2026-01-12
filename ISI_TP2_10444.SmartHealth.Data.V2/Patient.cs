@@ -25,7 +25,7 @@ namespace ISI_TP2_10444_SmartHealth_Data
 
         // --- Navigation Properties ---
 
-
+        //public ICollection<Alert> Alerts { get; set; }
         //public virtual ICollection<Wearable> Wearables { get; set; } // Navigation Property: Allows accessing related Wearables directly
 
     }

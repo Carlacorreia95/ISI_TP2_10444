@@ -13,11 +13,13 @@ namespace ISI_TP2_10444_SmartHealth_Data
     public class Alert
     {
         [Key] // Primary Key Unic Identifier
-        public Guid AlertId { get; set; } 
+        public Guid AlertId { get; set; }
 
-        [ForeignKey("Patient")]// Foreign Key link to Patient
-        
         public Guid PatientId { get; set; }
+
+        [ForeignKey("PatientId")]// Foreign Key link to Patient
+        public Patient Patient { get; set; }
+        
 
         [Required(ErrorMessage = "O campo Regra violada é obrigatório.")]
         [MaxLength(250, ErrorMessage = "A descrição não pode exceder os 250 caracteres.")]

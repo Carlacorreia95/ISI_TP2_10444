@@ -27,6 +27,8 @@ namespace ISI_TP2_10444_SmartHealth_MedicalService_Controllers
         public async Task<ActionResult<Patient>> GetPatient(Guid id)
         {
             var patient = await _context.Patients.FindAsync(id);
+                //.Include(P=>P.Alerts)
+                //.FirstOrDefaultAsync(p => p.PatientId == id);
             if (patient == null)
             {
                 return NotFound();
